@@ -1,7 +1,7 @@
 export const config = {
     description: `simping for 2d girls`,
     discordId: "1162837128175157460", // Use a valid ID to test
-    themeColor: "#11ff00ff", // Hex color for the website theme
+    themeColor: "#37ff00ff", // Hex color for the website theme
     spotify: true,
 
     // Links: label, icon (from lucide-react), url

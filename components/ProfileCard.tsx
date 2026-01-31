@@ -9,6 +9,8 @@ import { useState, useEffect } from "react";
 // Type definitions for the API response
 export interface DiscordData {
     username: string;
+    globalName?: string;
+    displayName?: string;
     avatar: string;
     activities: Activity[];
     status: string;
@@ -41,7 +43,6 @@ interface Activity {
 interface ProfileCardProps {
     data: DiscordData | null;
     loading: boolean;
-    // Removed audio related props as per user request
 }
 
 const statusColors: Record<string, string> = {
@@ -70,12 +71,18 @@ export default function ProfileCard({ data, loading }: ProfileCardProps) {
     const [views, setViews] = useState(0);
 
     useEffect(() => {
-        // View Counter logic
-        const stored = localStorage.getItem("profile_views");
-        let count = stored ? parseInt(stored) : 0;
-        count = count + 1;
-        setViews(count);
-        localStorage.setItem("profile_views", count.toString());
+        // Fetch views from server-side API (POST increments, GET just fetches)
+        // Since we want to increment on 'refresh' (load), we use POST once on mount.
+        const updateViews = async () => {
+            try {
+                const res = await fetch('/api/views', { method: 'POST' });
+                const json = await res.json();
+                setViews(json.views);
+            } catch (e) {
+                console.error("Failed to update views", e);
+            }
+        };
+        updateViews();
     }, []);
 
     if (loading || !data) {
@@ -122,12 +129,6 @@ export default function ProfileCard({ data, loading }: ProfileCardProps) {
         return url;
     };
 
-    const spotify = data.activities.find((act) => act.name === "Spotify" || act.type === "Listening");
-    const game = data.activities.find((act) => act.name !== "Spotify" && act.type !== "Listening" && act.name !== "Custom Status");
-
-    // Choose one activity to show (Spotify priority)
-    const currentActivity = spotify || game;
-
     const getActivityImage = (activity: Activity) => {
         if (activity.spotify?.albumArt) return activity.spotify.albumArt;
         if (activity.assets?.largeImage) {
@@ -142,31 +143,38 @@ export default function ProfileCard({ data, loading }: ProfileCardProps) {
         return null;
     };
 
+    // Filter and valid activities
+    const validActivities = data.activities.filter(
+        (act) => act.type === "Listening" || act.type === "Playing" || (act.name !== "Custom Status")
+    );
+
     // Dynamic RGB for rgba styles
     const themeRgb = hexToRgb(config.themeColor || '#ffffff');
+
+    // Display Name: Use global_name if available, else username
+    const displayName = data.displayName || data.globalName || data.username;
 
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            // Fixed width of 550px across all devices as requested
-            className="p-8 w-[550px] max-w-full bg-black/20 backdrop-blur-xl rounded-[40px] shadow-2xl relative overflow-hidden flex flex-col items-center justify-center gap-6"
-            style={{ boxShadow: `0 0 40px ${config.themeColor}10` }}
+            // Fixed width
+            className="p-8 w-[550px] max-w-full bg-black/20 backdrop-blur-xl rounded-[40px] shadow-2xl relative overflow-hidden flex flex-col items-center gap-6"
+            style={{
+                boxShadow: `0 0 40px ${config.themeColor}10`
+            }}
         >
-            {/* View Counter - Bottom Left (as per image reference) */}
+            {/* View Counter - Bottom Left */}
             <div className="absolute bottom-6 left-8 flex items-center gap-2 text-sm font-bold opacity-80 z-20">
                 <Eye className="w-4 h-4" style={{ color: config.themeColor }} />
                 <span style={{ color: config.themeColor }}>{views}</span>
             </div>
 
             {/* Profile Section */}
-            <div className="flex flex-col items-center w-full z-10 relative">
-                {/* Avatar with Wings Decoration */}
+            <div className="flex flex-col items-center w-full z-10 relative mt-2">
+                {/* Avatar (Birds Removed) */}
                 <div className="relative flex items-center justify-center">
-                    {/* Left Wing Emoji */}
-                    <span className="text-3xl absolute -left-10 top-2 opacity-90 transform -rotate-12">🕊️</span>
-
                     <div className="relative group">
                         <Image
                             src={avatarUrl}
@@ -180,87 +188,81 @@ export default function ProfileCard({ data, loading }: ProfileCardProps) {
                             className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-black ${statusColors[data.status] || "bg-gray-500"}`}
                         />
                     </div>
-
-                    {/* Right Wing Emoji */}
-                    <span className="text-3xl absolute -right-10 top-2 opacity-90 transform rotate-12">🕊️</span>
                 </div>
 
-                {/* Username - Gothic Font */}
+                {/* Display Name - Standard Font */}
                 <h1
                     style={{
                         textShadow: `0 0 15px ${config.themeColor}`,
                         color: config.themeColor,
-                        fontFamily: 'var(--font-gothic), serif'
+                        fontFamily: 'sans-serif'
                     }}
-                    className="mt-4 text-5xl font-normal tracking-wider"
+                    className="mt-4 text-4xl font-bold tracking-wider text-center"
                 >
-                    {data.username}
+                    {displayName}
                 </h1>
             </div>
 
-            {/* Custom Pill-Shaped Activity Card (The "Green" one) */}
-            {currentActivity && (
-                <div
-                    className="w-full max-w-sm rounded-[30px] p-2 pr-2 flex items-center gap-3 relative overflow-hidden"
-                    style={{
-                        backgroundColor: `rgba(${themeRgb}, 0.25)`, // Stronger tint
-                        backdropFilter: "blur(12px)",
-                    }}
-                >
-                    {/* Left: User Avatar (Small) */}
-                    <div className="relative w-12 h-12 shrink-0 ml-2">
-                        <Image
-                            src={avatarUrl}
-                            alt="mini-avatar"
-                            fill
-                            className="rounded-full object-cover"
-                        />
-                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border border-black-900"></div>
-                    </div>
+            {/* Activities Section - One Expanded Card for All Activities */}
+            <div className="w-full max-w-sm flex flex-col gap-0 items-center w-full mb-4">
+                {validActivities.length > 0 ? (
+                    // Use one container for all activities if multiple
+                    <div
+                        className="w-full rounded-[30px] overflow-hidden"
+                        style={{
+                            backgroundColor: `rgba(${themeRgb}, 0.25)`,
+                            backdropFilter: "blur(12px)",
+                        }}
+                    >
+                        {validActivities.map((act, index) => (
+                            <div
+                                key={index + act.name}
+                                className={`w-full p-3 flex items-center gap-3 relative ${index !== validActivities.length - 1 ? 'border-b border-white/5' : ''}`}
+                            >
+                                {/* Middle: Text Info (Centered vertically) */}
+                                <div className="flex-1 min-w-0 flex flex-col justify-center pl-4">
+                                    <p className="text-xs font-medium truncate" style={{ color: config.themeColor }}>
+                                        {act.name === "Spotify" ? "Listening to Spotify" : `Playing ${act.name}`}
+                                    </p>
+                                    <p className="text-[10px] text-white/60 truncate">
+                                        {act.details || act.state || "Just lounging"}
+                                    </p>
+                                    {act.type !== "Listening" && act.state && act.name !== "Spotify" && (
+                                        <p className="text-[10px] text-white/40 truncate">
+                                            {act.state}
+                                        </p>
+                                    )}
+                                </div>
 
-                    {/* Middle: Text Info */}
-                    <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <div className="flex items-center gap-1.5">
-                            <span className="text-white font-bold text-sm truncate">{data.username}</span>
-                            {/* Badge Icon */}
-                            <span className="bg-purple-500/80 text-[10px] px-1.5 py-0.5 rounded text-white font-bold">ROXY</span>
-                        </div>
-                        <p className="text-xs text-green-300 font-medium truncate">
-                            {currentActivity.name === "Spotify" ? "Listening to Spotify" : `Playing ${currentActivity.name}`}
-                        </p>
-                        <p className="text-[10px] text-white/60 truncate">
-                            {currentActivity.details || currentActivity.state || "Just lounging"}
-                        </p>
-                    </div>
-
-                    {/* Right: Large Activity Image (Square) */}
-                    <div className="relative w-14 h-14 shrink-0 rounded-xl overflow-hidden bg-black/50">
-                        {getActivityImage(currentActivity) ? (
-                            <img src={getActivityImage(currentActivity)!} alt="Activity" className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                                <Gamepad2 className="w-6 h-6 text-white/50" />
+                                {/* Right: Large Activity Image (Square) */}
+                                <div className="relative w-12 h-12 shrink-0 rounded-xl overflow-hidden bg-black/50">
+                                    {getActivityImage(act) ? (
+                                        <img src={getActivityImage(act)!} alt="Activity" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <Gamepad2 className="w-6 h-6 text-white/50" />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        )}
+                        ))}
                     </div>
-                </div>
-            )}
+                ) : (
+                    /* If no activity, show a placeholder pill */
+                    <div
+                        className="w-full rounded-[30px] p-4 flex items-center justify-center gap-3 relative overflow-hidden"
+                        style={{
+                            backgroundColor: `rgba(${themeRgb}, 0.1)`,
+                            backdropFilter: "blur(12px)",
+                        }}
+                    >
+                        <span className="text-sm opacity-60 font-mono" style={{ color: config.themeColor }}>No Activity Detected</span>
+                    </div>
+                )}
+            </div>
 
-            {/* If no activity, show a placeholder pill so height remains steady (Optional) */}
-            {!currentActivity && (
-                <div
-                    className="w-full max-w-sm rounded-[30px] p-4 flex items-center justify-center gap-3 relative overflow-hidden"
-                    style={{
-                        backgroundColor: `rgba(${themeRgb}, 0.1)`,
-                        backdropFilter: "blur(12px)",
-                    }}
-                >
-                    <span className="text-sm opacity-60 font-mono" style={{ color: config.themeColor }}>No Activity Detected</span>
-                </div>
-            )}
-
-            {/* Social Icons - Glowing & Centered */}
-            <div className="flex items-center justify-center gap-6 mt-2">
+            {/* Social Icons */}
+            <div className="flex items-center justify-center gap-6 pb-6">
                 {config.socials.map((social: any) => (
                     <a
                         key={social.label}
@@ -270,14 +272,13 @@ export default function ProfileCard({ data, loading }: ProfileCardProps) {
                         className="transition-all duration-300 hover:scale-110 hover:-translate-y-1"
                         style={{
                             color: config.themeColor,
-                            // Creating a glow effect behind the icon with box-shadow
                             filter: `drop-shadow(0 0 8px ${config.themeColor})`
                         }}
                     >
                         {social.label.toLowerCase() === "github" ? <Github className="w-8 h-8" /> :
                             social.label.toLowerCase() === "discord" ? <LinkIcon className="w-8 h-8" /> :
                                 social.label.toLowerCase() === "spotify" ? <Music className="w-8 h-8" /> :
-                                    social.label.toLowerCase() === "instagram" ? <div className="w-8 h-8 rounded-lg border-2 border-current p-1 flex items-center justify-center"><div className="w-3 h-3 bg-current rounded-full"></div></div> : /* Placeholder for IG */
+                                    social.label.toLowerCase() === "instagram" ? <div className="w-8 h-8 rounded-lg border-2 border-current p-1 flex items-center justify-center"><div className="w-3 h-3 bg-current rounded-full"></div></div> :
                                         <LinkIcon className="w-8 h-8" />}
                     </a>
                 ))}
