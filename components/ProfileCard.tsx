@@ -1,10 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Github, Music, Gamepad2, Link as LinkIcon, Play, Pause, Eye } from "lucide-react";
+import { Github, Music, Gamepad2, Link as LinkIcon, Eye } from "lucide-react";
 import Image from "next/image";
 import { config } from "@/config";
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 // Type definitions for the API response
 export interface DiscordData {
@@ -41,8 +41,7 @@ interface Activity {
 interface ProfileCardProps {
     data: DiscordData | null;
     loading: boolean;
-    featuredAudioUrl?: string;
-    onAudioPlayHelper?: (playing: boolean) => void;
+    // Removed audio related props as per user request
 }
 
 const statusColors: Record<string, string> = {
@@ -67,10 +66,7 @@ const hexToRgb = (hex: string) => {
 };
 
 
-export default function ProfileCard({ data, loading, featuredAudioUrl, onAudioPlayHelper }: ProfileCardProps) {
-    const [isPlaying, setIsPlaying] = useState(false);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
-
+export default function ProfileCard({ data, loading }: ProfileCardProps) {
     const [views, setViews] = useState(0);
 
     useEffect(() => {
@@ -82,30 +78,13 @@ export default function ProfileCard({ data, loading, featuredAudioUrl, onAudioPl
         localStorage.setItem("profile_views", count.toString());
     }, []);
 
-    useEffect(() => {
-        if (onAudioPlayHelper) {
-            onAudioPlayHelper(isPlaying);
-        }
-    }, [isPlaying, onAudioPlayHelper]);
-
-    const togglePlay = () => {
-        if (!audioRef.current) return;
-        if (isPlaying) {
-            audioRef.current.pause();
-        } else {
-            audioRef.current.volume = 0.5;
-            audioRef.current.play().catch((e) => console.error("Audio play error", e));
-        }
-        setIsPlaying(!isPlaying);
-    };
-
     if (loading || !data) {
         return (
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 style={{ borderColor: `${config.themeColor}50`, color: config.themeColor }}
-                className="w-[480px] h-[350px] bg-black/30 backdrop-blur-md rounded-xl border flex items-center justify-center transition-all duration-300"
+                className="w-[550px] h-[350px] bg-black/30 backdrop-blur-md rounded-xl border flex items-center justify-center transition-all duration-300"
             >
                 <div
                     style={{ borderColor: config.themeColor, borderTopColor: 'transparent' }}
@@ -171,8 +150,8 @@ export default function ProfileCard({ data, loading, featuredAudioUrl, onAudioPl
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="p-8 w-full w-[550px] bg-black/20 backdrop-blur-xl rounded-[40px] shadow-2xl relative overflow-hidden flex flex-col items-center justify-center gap-6"
-            // Light shadow, glass feel
+            // Fixed width of 550px across all devices as requested
+            className="p-8 w-[550px] max-w-full bg-black/20 backdrop-blur-xl rounded-[40px] shadow-2xl relative overflow-hidden flex flex-col items-center justify-center gap-6"
             style={{ boxShadow: `0 0 40px ${config.themeColor}10` }}
         >
             {/* View Counter - Bottom Left (as per image reference) */}
@@ -196,7 +175,6 @@ export default function ProfileCard({ data, loading, featuredAudioUrl, onAudioPl
                             height={100}
                             unoptimized
                             className="rounded-full shadow-lg group-hover:scale-105 transition-transform duration-300 object-cover"
-                        // Removed border from avatar itself to match image cleaner look, or maybe user likes it? Keeping it simple.
                         />
                         <div
                             className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-black ${statusColors[data.status] || "bg-gray-500"}`}
@@ -212,7 +190,7 @@ export default function ProfileCard({ data, loading, featuredAudioUrl, onAudioPl
                     style={{
                         textShadow: `0 0 15px ${config.themeColor}`,
                         color: config.themeColor,
-                        fontFamily: 'var(--font-gothic), serif' // Using the CSS variable we set in global layout
+                        fontFamily: 'var(--font-gothic), serif'
                     }}
                     className="mt-4 text-5xl font-normal tracking-wider"
                 >
@@ -304,18 +282,6 @@ export default function ProfileCard({ data, loading, featuredAudioUrl, onAudioPl
                     </a>
                 ))}
             </div>
-
-            {/* Featured Audio - Hidden (or minimal) as requested image doesn't show it prominently */}
-            {/* Keeping it only if it plays sound, but hidden visually or very minimal if needed. 
-                User said "design like this", and image has no audio player visible inside the card.
-                However, there is a mute button in top-left of SCREEN.
-                We'll hide the player UI inside the card to match, but keep audio logic.
-            */}
-            {featuredAudioUrl && (
-                <div className="hidden">
-                    <audio ref={audioRef} src={featuredAudioUrl} loop autoPlay />
-                </div>
-            )}
 
         </motion.div>
     );
