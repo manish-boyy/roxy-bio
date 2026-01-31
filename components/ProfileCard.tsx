@@ -170,9 +170,13 @@ export default function ProfileCard({ data, loading }: ProfileCardProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             // Fixed width
-            className="p-8 w-[550px] max-w-full bg-black/20 backdrop-blur-xl rounded-[40px] shadow-2xl relative overflow-hidden flex flex-col items-center gap-6"
+            className="p-8 w-[550px] max-w-full backdrop-blur-xl rounded-[40px] shadow-2xl relative overflow-hidden flex flex-col items-center gap-6"
             style={{
-                boxShadow: `0 0 40px ${config.themeColor}10`
+                boxShadow: `0 0 40px ${config.themeColor}10`,
+                backgroundColor: `rgba(0, 0, 0, ${config.ui.mainCard.opacity / 100})`,
+                border: config.ui.mainCard.border.show
+                    ? `${config.ui.mainCard.border.width}px solid ${config.ui.mainCard.border.color}`
+                    : 'none'
             }}
         >
             {/* View Counter - Bottom Left */}
@@ -221,8 +225,11 @@ export default function ProfileCard({ data, loading }: ProfileCardProps) {
                         className="w-full rounded-[30px] overflow-hidden"
                         style={{
                             // Ensure this uses the themeRgb variable derived from config
-                            backgroundColor: `rgba(${themeRgb}, 0.25)`,
+                            backgroundColor: `rgba(${themeRgb}, ${config.ui.activityCard.opacity / 100})`,
                             backdropFilter: "blur(12px)",
+                            border: config.ui.activityCard.border.show
+                                ? `${config.ui.activityCard.border.width}px solid ${config.ui.activityCard.border.color}`
+                                : 'none'
                         }}
                     >
                         {validActivities.map((act, index) => (
@@ -264,8 +271,11 @@ export default function ProfileCard({ data, loading }: ProfileCardProps) {
                     <div
                         className="w-full rounded-[30px] p-4 flex items-center justify-center gap-3 relative overflow-hidden"
                         style={{
-                            backgroundColor: `rgba(${themeRgb}, 0.1)`,
+                            backgroundColor: `rgba(${themeRgb}, ${config.ui.activityCard.opacity / 100})`,
                             backdropFilter: "blur(12px)",
+                            border: config.ui.activityCard.border.show
+                                ? `${config.ui.activityCard.border.width}px solid ${config.ui.activityCard.border.color}`
+                                : 'none'
                         }}
                     >
                         <span className="text-sm opacity-60 font-mono" style={{ color: config.themeColor }}>No Activity Detected</span>
