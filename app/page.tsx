@@ -83,7 +83,8 @@ export default function Home() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch(`http://fi1.bot-hosting.net:5945/api/${config.discordId}`);
+      // Use our internal proxy to avoid Mixed Content (HTTP vs HTTPS) errors
+      const res = await fetch('/api/user');
       if (!res.ok) throw new Error("Failed to fetch");
       const jsonData = await res.json();
       setData(jsonData.data || jsonData);
