@@ -25,7 +25,13 @@ export const config = {
 
     // Custom Badges (Overrides Discord API badges)
     customBadges: [
+        "https://discordresources.com/img/subscriptions/silver.svg",
         "https://upload.wikimedia.org/wikipedia/commons/b/b5/Discord_Active_Developer_Badge.svg",
+        "https://discordresources.com/img/quest.png",
+        "https://discordresources.com/img/username.png",
+        "https://cdn.discordapp.com/badge-icons/83d8a1eb09a8d64e59233eec5d4d5c2d.png",
+        "https://discordresources.com/img/hypesquadbrilliance.svg",
+        "https://discordresources.com/img/boosts/discordboost3.svg",
     ],
     badgeStyle: {
         size: 24, // px
@@ -34,9 +40,9 @@ export const config = {
     },
 
     socials: [
-        { label: "Github", iconUrl: "https://simpleicons.org/icons/github.svg", href: "https://github.com/your-username" },
-        { label: "Discord", iconUrl: "https://simpleicons.org/icons/discord.svg", href: "https://discord.com/users/1213822891448209478" },
-        { label: "Instagram", iconUrl: "https://simpleicons.org/icons/instagram.svg", href: "https://instagram.com/your-username" },
+        { label: "Github", iconUrl: "https://simpleicons.org/icons/github.svg", href: "https://github.com/manishbhaiii" },
+        { label: "Discord", iconUrl: "https://simpleicons.org/icons/discord.svg", href: "https://roxylink.vercel.app/discord" },
+        { label: "Instagram", iconUrl: "https://simpleicons.org/icons/youtube.svg", href: "https://www.youtube.com/@manish_boyy" },
     ],
 
     // Background media
