@@ -97,3 +97,5 @@ An array of objects representing your social media links.
 ### Background
 - **type**: Set to either `"video"` or `"image"`.
 - **url**: The direct URL to the background resource. If using a video, ensure it is a format supported by browsers (like MP4) and allow direct playback.
+
+# this project is fully made by vibe coding
