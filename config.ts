@@ -33,9 +33,6 @@ export const config = {
         gap: 8, // px
     },
 
-    // Links: label, icon (from lucide-react), url
-    // Links: label, icon (from lucide-react), url
-    // Links: label, iconUrl (image path), url
     socials: [
         { label: "Github", iconUrl: "https://simpleicons.org/icons/github.svg", href: "https://github.com/your-username" },
         { label: "Discord", iconUrl: "https://simpleicons.org/icons/discord.svg", href: "https://discord.com/users/1213822891448209478" },
