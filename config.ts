@@ -48,6 +48,6 @@ export const config = {
     // Background media
     background: {
         type: "video", // 'video' or 'image'
-        url: "https://cdn.discordapp.com/attachments/1270624795549106227/1467429113856917584/youtube-RFY9RALv5XE.mp4?ex=6984f69c&is=6983a51c&hm=dfe98f3fef3807d38d3e9ffa2c0b74a367749c81074eb3e06df6e88442df9cff&", // Placeholder - User to replace
+        url: "https://cdn.discordapp.com/attachments/1257357026825338901/1468989149502767164/youtube-sCHWfCI6yfM.mp4?ex=69860641&is=6984b4c1&hm=cc83b49513d3cf76e5e8de96c66bde9a75fb9a2428e736869e28bb14aca49899&", // Placeholder - User to replace
     },
 };
